@@ -7,9 +7,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -108,7 +110,32 @@ func Data_products(w http.ResponseWriter, r *http.Request) {
 	middleware.GetCleanedInput(r)
 	helper.EnableCors(w)
 	if r.Method == "GET" {
-		res, err := json.Marshal(models.SelectAll_product().Value)
+		pageOld := r.URL.Query().Get("page")
+		limitOld := r.URL.Query().Get("limit")
+		page, _ := strconv.Atoi(pageOld)
+		limit, _ := strconv.Atoi(limitOld)
+		offset := (page - 1) * limit
+		sort := r.URL.Query().Get("sort")
+		if sort == "" {
+			sort = "ASC"
+		}
+		sortby := r.URL.Query().Get("sortBy")
+		if sortby == "" {
+			sortby = "name"
+		}
+		sort = sortby + " " + strings.ToLower(sort)
+		respons := models.FindCond(sort, limit, offset)
+		totalData := models.CountData()
+		totalPage := math.Ceil(float64(totalData) / float64(limit))
+		result := map[string]interface{}{
+			"status":      "Berhasil",
+			"data":        respons.Value,
+			"currentPage": page,
+			"limit":       limit,
+			"totalData":   totalData,
+			"totalPage":   totalPage,
+		}
+		res, err := json.Marshal(result)
 		if err != nil {
 			http.Error(w, "Gagal Konversi Json", http.StatusInternalServerError)
 			return
