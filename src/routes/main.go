@@ -36,7 +36,7 @@ func Router() {
 	http.Handle("/register_member", helmet.Secure(middleware.XssMiddleware(http.HandlerFunc(members_controller.RegisterMember))))
 
 	//ProductSection//
-	http.Handle("/products/", middleware.JwtMiddleware(helmet.Secure(middleware.XssMiddleware(http.HandlerFunc(products_controllers.Data_products)))))
+	http.Handle("/products", middleware.JwtMiddleware(helmet.Secure(middleware.XssMiddleware(http.HandlerFunc(products_controllers.Data_products)))))
 	http.Handle("/product/", helmet.Secure(middleware.XssMiddleware(http.HandlerFunc(products_controllers.Data_product))))
 
 	/*Pagination , Upload Product , Search Produck */
