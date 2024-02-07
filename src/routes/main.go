@@ -39,6 +39,7 @@ func Router() {
 	//ProductSection//
 	http.Handle("/product/", helmet.Secure(middleware.XssMiddleware(http.HandlerFunc(products_controllers.Data_product))))
 	http.Handle("/products", helmet.Secure(middleware.XssMiddleware(http.HandlerFunc(products_controllers.Data_all_product))))
+	// http.Handle("/add_product", helmet.Secure(middleware.XssMiddleware(http.HandlerFunc(products_controllers.))))
 
 	/*Pagination , Upload Product , Search Produck */
 	http.Handle("/search", http.HandlerFunc(products_controllers.Search_product))

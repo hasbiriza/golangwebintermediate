@@ -24,7 +24,7 @@ func FindData(Product_name string) *gorm.DB {
 }
 
 func FindCond(sort string, limit int, offset int) *gorm.DB {
-	items := Products{}
+	items := []Products{}
 	return config.DB.Order(sort).Limit(limit).Offset(offset).Find(&items)
 }
 
