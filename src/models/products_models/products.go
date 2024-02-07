@@ -17,10 +17,10 @@ type Products struct {
 	Condition    string
 }
 
-func FindData(name string) *gorm.DB {
+func FindData(Product_name string) *gorm.DB {
 	items := []Products{}
-	name = "%" + name + "%"
-	return config.DB.Where("name Like?", name).Find(&items)
+	Product_name = "%" + Product_name + "%"
+	return config.DB.Where("Product_name Like ?", Product_name).Find(&items)
 }
 
 func FindCond(sort string, limit int, offset int) *gorm.DB {

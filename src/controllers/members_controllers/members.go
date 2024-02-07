@@ -3,6 +3,7 @@ package members_controller
 import (
 	"api_tugas_minggu4/src/helper"
 	"api_tugas_minggu4/src/middleware"
+	"api_tugas_minggu4/src/models/members_models"
 	models "api_tugas_minggu4/src/models/members_models"
 	"encoding/json"
 	"fmt"
@@ -13,32 +14,90 @@ import (
 )
 
 // ////////////////////////////////////////////////////Register&Login////////////////////////////////////
-func RegisterMember(w http.ResponseWriter, r *http.Request) {
+func RegisterSeller(w http.ResponseWriter, r *http.Request) {
+	middleware.GetCleanedInput(r)
+	helper.EnableCors(w)
 	if r.Method == "POST" {
-		var input models.Member
+		var input members_models.Member
 		err := json.NewDecoder(r.Body).Decode(&input)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintln(w, "Invalid Request Body")
+			fmt.Fprint(w, "Invalid request body")
 			return
 		}
+
 		hashPassword, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 		Password := string(hashPassword)
-		newMember := models.Member{
+
+		item := members_models.Member{
 			Member_name: input.Member_name,
 			Email:       input.Email,
 			Password:    Password,
-			Role:        input.Role,
+			Role:        "Seller",
 			Address:     input.Address,
 			Phone:       input.Phone,
 		}
-		res := models.CreateMember(&newMember)
-		var _, _ = json.Marshal(res)
+		members_models.Create_member(&item)
 		w.WriteHeader(http.StatusCreated)
-		fmt.Fprintln(w, "Register Succesful")
+		msg := map[string]string{
+			"Message": "Seller Registered",
+		}
+		res, err := json.Marshal(msg)
+		if err != nil {
+			http.Error(w, "Gagal Konversi Ke Json", http.StatusInternalServerError)
+			return
+		}
+		if _, err := w.Write(res); err != nil {
+			http.Error(w, "Failed to write response", http.StatusInternalServerError)
+			return
+		}
 	} else {
-		http.Error(w, "", http.StatusBadRequest)
+		http.Error(w, "Method tidak diizinkan", http.StatusMethodNotAllowed)
 	}
+
+}
+
+func RegisterCustomer(w http.ResponseWriter, r *http.Request) {
+	middleware.GetCleanedInput(r)
+	helper.EnableCors(w)
+	if r.Method == "POST" {
+		var input members_models.Member
+		err := json.NewDecoder(r.Body).Decode(&input)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "Invalid request body")
+			return
+		}
+		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+		Password := string(hashedPassword)
+
+		item := members_models.Member{
+			Member_name: input.Member_name,
+			Email:       input.Email,
+			Password:    Password,
+			Role:        "Customer",
+			Address:     input.Address,
+			Phone:       input.Phone,
+		}
+		members_models.Create_member(&item)
+		w.WriteHeader(http.StatusCreated)
+		msg := map[string]string{
+			"Message": "Customer Registered",
+		}
+		res, err := json.Marshal(msg)
+		if err != nil {
+			http.Error(w, "Gagal Konversi Ke Json", http.StatusInternalServerError)
+			return
+		}
+		if _, err := w.Write(res); err != nil {
+			http.Error(w, "Failed to write response", http.StatusInternalServerError)
+			return
+		}
+
+	} else {
+		http.Error(w, "Method tidak diizinkan", http.StatusMethodNotAllowed)
+	}
+
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +141,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 //////////////////////////////////////////////////CRUD////////////////////////////////////////////
 
-func Data_members(w http.ResponseWriter, r *http.Request) {
+func Data_all_member(w http.ResponseWriter, r *http.Request) {
 	middleware.GetCleanedInput(r)
 	helper.EnableCors(w)
 	if r.Method == "GET" {
@@ -107,7 +166,7 @@ func Data_members(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		models.Post_member(&member)
+		models.Create_member(&member)
 		w.WriteHeader(http.StatusCreated)
 		msg := map[string]string{
 			"Message": "Product Created",
@@ -165,7 +224,7 @@ func Data_member(w http.ResponseWriter, r *http.Request) {
 			Phone:       updateProduct.Phone,
 		}
 
-		models.Updates_member(id, &newProduct)
+		models.Updates_member_seller(id, &newProduct)
 		msg := map[string]string{
 			"Message": "Member Updated",
 		}

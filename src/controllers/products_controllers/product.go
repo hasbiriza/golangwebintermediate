@@ -3,6 +3,7 @@ package products_controllers
 import (
 	"api_tugas_minggu4/src/helper"
 	"api_tugas_minggu4/src/middleware"
+	"api_tugas_minggu4/src/models/products_models"
 	models "api_tugas_minggu4/src/models/products_models" //Alias tulisan models disamping import
 	"encoding/json"
 	"fmt"
@@ -17,7 +18,7 @@ import (
 )
 
 // /////////////////////////////Upload_File////////////////////////////////////////////////
-func Handle_upload(w http.ResponseWriter, r *http.Request) {
+func Upload_image_product(w http.ResponseWriter, r *http.Request) {
 	const (
 		AllowedExtensions = ".jpg,.jpeg,.pdf,.png"
 		MaxFileSize       = 2 << 20 //2MB
@@ -93,7 +94,7 @@ func Handle_upload(w http.ResponseWriter, r *http.Request) {
 }
 
 // /Search Product
-func SearchProduct(w http.ResponseWriter, r *http.Request) {
+func Search_product(w http.ResponseWriter, r *http.Request) {
 	keyword := r.URL.Query().Get("search")
 	res, err := json.Marshal(models.FindData(keyword).Value)
 	if err != nil {
@@ -104,9 +105,7 @@ func SearchProduct(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// ////////////////////CRUD PRODUCTS//////////////////////////////////////////////
-
-func Data_products(w http.ResponseWriter, r *http.Request) {
+func Product_pagination(w http.ResponseWriter, r *http.Request) {
 	middleware.GetCleanedInput(r)
 	helper.EnableCors(w)
 	if r.Method == "GET" {
@@ -131,7 +130,7 @@ func Data_products(w http.ResponseWriter, r *http.Request) {
 			"status":      "Berhasil",
 			"data":        respons.Value,
 			"currentPage": page,
-			"limit":       limit,
+			"limit":       limitOld,
 			"totalData":   totalData,
 			"totalPage":   totalPage,
 		}
@@ -141,10 +140,10 @@ func Data_products(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_, err = w.Write(res) // Perubahan disini
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		w.Write(res) // Perubahan disini
+		// if err != nil {
+		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+		// }
 		return
 	} else if r.Method == "POST" {
 		var product models.Products
@@ -175,7 +174,22 @@ func Data_products(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func Data_product(w http.ResponseWriter, r *http.Request) {
+///////////////////////CRUD PRODUCTS//////////////////////////////////////////////
+
+func Data_all_product(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		res := products_models.SelectAll_product()
+		result, err := json.Marshal(res.Value)
+		if err != nil {
+			http.Error(w, "Failed convert to Json", http.StatusInternalServerError)
+			return
+		}
+		w.Write(result)
+		return
+	}
+}
+
+func Data_product(w http.ResponseWriter, r *http.Request) { //Ini yang ccari dengan id
 	middleware.GetCleanedInput(r)
 	helper.EnableCors(w)
 	id := r.URL.Path[len("/product/"):]
